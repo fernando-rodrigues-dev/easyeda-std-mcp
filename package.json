@@ -1,0 +1,22 @@
+{
+  "name": "easyeda-std-mcp",
+  "version": "2.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP local para esquemas elétricos e PCB no EasyEDA Standard",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "bridge": "node src/bridge.mjs",
+    "setup": "node scripts/setup.mjs",
+    "test": "node --test test/*.test.mjs",
+    "test:protocol": "node scripts/test-protocol.mjs",
+    "check:public": "node scripts/check-public.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "zod": "4.6.5"
+  }
+}

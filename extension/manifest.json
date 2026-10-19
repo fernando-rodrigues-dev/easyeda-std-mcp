@@ -1,0 +1,11 @@
+{
+  "name": "EasyEDA STD MCP",
+  "description": "Ponte local para esquemas e layout PCB pelo chat.",
+  "version": "2.1.0",
+  "icons": {
+    "default": "icon.svg"
+  },
+  "scripts": [
+    "main.js"
+  ]
+}
