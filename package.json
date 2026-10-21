@@ -3,14 +3,15 @@
   "version": "2.1.0",
   "private": true,
   "type": "module",
-  "description": "MCP local para esquemas elétricos e PCB no EasyEDA Standard",
+  "description": "MCP local e WebMCP no navegador para esquemas e PCB no EasyEDA Standard",
   "scripts": {
     "start": "node src/server.mjs",
     "bridge": "node src/bridge.mjs",
     "setup": "node scripts/setup.mjs",
     "test": "node scripts/run-tests.mjs",
     "test:protocol": "node scripts/test-protocol.mjs",
-    "check:public": "node scripts/check-public.mjs"
+    "check:public": "node scripts/check-public.mjs",
+    "build:webmcp": "node scripts/build-webmcp.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -18,5 +19,9 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
     "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "fake-indexeddb": "6.2.6"
   }
 }

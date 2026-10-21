@@ -18,6 +18,8 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm run build:webmcp
+      - run: git diff --exit-code -- cloud/Conectar-WebMCP.js
       - run: npm test
       - run: npm run test:protocol
       - run: npm run check:public

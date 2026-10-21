@@ -1,0 +1,2 @@
+const copperLayer=layer=>['1','2'].includes(layer)||(Number(layer)>=21&&Number(layer)<=52);
+export function ensureSingleSided(r){const forbidden=o=>copperLayer(o.layer)&&o.layer!=='2';if(r.vias.length||r.pads.some(forbidden)||r.tracks.some(forbidden)||r.copper_areas.some(forbidden)||r.solid_regions.some(a=>forbidden(a)&&a.type==='solid'))throw Error('Face simples: remova vias e cobre/SMD de qualquer camada diferente de BottomLayer.');}

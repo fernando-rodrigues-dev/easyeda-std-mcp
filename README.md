@@ -1,8 +1,34 @@
 # EasyEDA Standard MCP
 
-Servidor MCP local para conectar um assistente compatível com MCP ao **EasyEDA Standard**. Permite ler e editar esquemas e trabalhar com uma PCB aberta usando a API do editor.
+Integração MCP local ou **WebMCP dentro do navegador** para conectar um assistente ao **EasyEDA Standard**. Permite ler e editar esquemas e trabalhar com uma PCB aberta usando a API do editor.
 
 O projeto está em desenvolvimento. A integração foi desenvolvida para o EasyEDA Standard **6.5.51**; outras versões precisam de validação. EasyEDA Pro usa uma API diferente.
+
+## Navegador cloud: sem computador ou servidor local
+
+O modo WebMCP executa as ferramentas na própria aba do EasyEDA online. Não usa Node.js em execução, tokens, ponte localhost ou servidor remoto. Exige um navegador/agente com suporte a `document.modelContext.registerTool`, como o navegador cloud usado na validação. Não funciona em qualquer navegador comum apenas por abrir o EasyEDA.
+
+1. Abra o **EasyEDA Standard online**.
+2. Em **Avançado > Extensões > Executar script**, carregue ou cole [`cloud/Conectar-WebMCP.js`](cloud/Conectar-WebMCP.js) e execute.
+3. Confira **WebMCP: conectado (35)** na barra. O agente deve descobrir as ferramentas da página e chamar `easyeda_status` antes de editar.
+
+As 33 ferramentas originais são compartilhadas com o modo local; há mais duas para listar e baixar backups do navegador. Não execute os dois modos simultaneamente. O script precisa ser carregado novamente ao recarregar a página ou iniciar uma nova sessão cloud; não mantém o navegador rodando em segundo plano.
+
+Backups prévios ficam em **IndexedDB**, na origem do EasyEDA. Uma edição é recusada se o backup não puder ser gravado. Exportações solicitam download JSON; `easyeda_list_backups` e `easyeda_download_backup` permitem recuperar uma cópia. Esses dados não vão para este GitHub. O armazenamento do navegador cloud pode ser apagado ao encerrar a sessão: salve projetos na sua conta EasyEDA ou exporte-os para armazenamento durável antes de sair. O script não faz login nem salva automaticamente na conta.
+
+Foi validada uma sessão real do Standard **6.5.60**: descoberta de 35 ferramentas, status, criação/leitura de esquema, inserção de resistor, anotação e gravação/listagem de backups. Isso não valida todas as operações de PCB nessa versão. As limitações de importação PCB continuam aplicáveis.
+
+Para reconstruir o script público após modificar o código:
+
+```sh
+npm ci
+npm run build:webmcp
+npm test
+npm run test:protocol
+npm run check:public
+```
+
+`cloud/Conectar-WebMCP.js` é um bundle público reproduzível, sem configuração de instalação ou credenciais. As fontes estão em `browser/`; os avisos da dependência incorporada estão em `cloud/THIRD_PARTY_NOTICES.txt`.
 
 ## Instalação
 
