@@ -1,10 +1,7 @@
-import fs from 'node:fs';
-import vm from 'node:vm';
-import {ROOT} from './config.mjs';
-const context=vm.createContext({});vm.runInContext(fs.readFileSync(ROOT+'/src/pcb-runtime.js','utf8'),context);
+import engine from './pcb-engine.mjs';
 export const MM=.254;
-export const pcbSummary=source=>JSON.parse(JSON.stringify(context.EasyEDAStdPCB.summary(source)));
-export function requirePCB(source){context.EasyEDAStdPCB.requirePCB(source);}
+export const pcbSummary=source=>JSON.parse(JSON.stringify(engine.summary(source)));
+export function requirePCB(source){engine.requirePCB(source);}
 export function enforceCopperNetNames(source){const next=pcbSummary(source),nets=new Set(next.pads.map(p=>p.net).filter(Boolean)),copper=o=>['1','2'].includes(o.layer)||(Number(o.layer)>=21&&Number(o.layer)<=52);for(const obj of [...next.tracks.filter(copper),...next.copper_areas,...next.solid_regions.filter(a=>a.type==='solid'&&copper(a))])if(!obj.net||!nets.has(obj.net))throw Error('Cobre com rede inexistente nos pads importados: '+(obj.net||'(sem rede)'));}
 export function origin(source){return {x:Number(source.head.x||0),y:Number(source.head.y||0)};}
 export function realSummary(source){const r=pcbSummary(source),o=origin(source);r.origin_canvas=o;r.coordinates='mm relativos à origem da PCB; x direita, y abaixo';for(const c of [...r.components,...r.pads,...r.holes,...r.vias,...r.texts]){c.x_mm=(c.x-o.x)*MM;c.y_mm=(c.y-o.y)*MM;}for(const c of r.components)for(const p of c.pads){p.x_mm=(p.x-o.x)*MM;p.y_mm=(p.y-o.y)*MM;}for(const t of r.tracks)t.points_mm=t.points.map(p=>({x:(p.x-o.x)*MM,y:(p.y-o.y)*MM}));return r;}

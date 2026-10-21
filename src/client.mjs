@@ -39,7 +39,7 @@ export function saveSource(source,label='backup') {
 export async function mutate(action,params,{session_id,expected_revision}) {
   const before=await snapshot(session_id);
   if(before.revision!==expected_revision)throw Error('A revisão mudou. Leia o esquema novamente antes de editar.');
-  const backup=saveSource(before.source);
+  const backup=await saveSource(before.source);
   try {
     const result=await command(action,params,session_id,JSON.stringify(before.source),before.document_id);
     const after=await snapshot(session_id);

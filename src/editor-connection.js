@@ -1,6 +1,7 @@
 /* Appended to editor-runtime.js by setup. CONFIG is generated locally. */
 (function(api,config) {
   'use strict';
+  if(window.EasyEDAStdWebMCP&&window.EasyEDAStdWebMCP.status().connected)throw new Error('Desconecte WebMCP antes de ativar a ponte MCP local.');
   if(window.EasyEDAStdMCP)window.EasyEDAStdMCP.stop();
   var clientId='std-'+Date.now()+'-'+Math.random().toString(16).slice(2), stopped=false;
   var handler=window.EasyEDAStdRuntime.createHandler(api);
