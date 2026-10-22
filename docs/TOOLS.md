@@ -27,3 +27,11 @@ Comece por status e leitura. Use os pontos de conexão retornados pelos pinos e 
 
 PCB usa mm relativos à origem. Mover uma peça não redesenha trilhas conectadas. Nos pads de número repetido, informe o ID físico. Veja [as limitações de reaplicação de fonte e da conferência](LIMITATIONS.md) antes de editar.
 
+
+## Novos documentos e biblioteca PCB
+
+- `easyeda_open_document`: fonte STD em uma nova aba, com cópia e confirmação de componentes/pads.
+- `easyeda_new_pcb`: PCB vazia em uma nova aba.
+- `easyeda_pcb_add_footprint`: biblioteca GeneralPackages ou UUID Standard, coordenadas em mm e revisão obrigatória; preserva a netlist preexistente. `through_hole_only: true` exige pads PTH com furo. Se a biblioteca retornar uma peça incompatível com essa opção ou com a política de face simples, a PCB anterior é restaurada.
+
+Estas operações usam a API oficial: https://docs.easyeda.com/en/API/3-API-List/. Não executam JavaScript arbitrário recebido por parâmetros.

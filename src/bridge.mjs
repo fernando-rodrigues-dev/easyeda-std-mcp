@@ -3,7 +3,7 @@ import {randomUUID,timingSafeEqual} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {PORT,token} from './config.mjs';
 export const NAME='easyeda-std-local-bridge-v1';
-const ACTIONS=new Set(['ping','snapshot','get_source','get_shape','new_schematic','add_component','set_component','add_wire','add_label','add_junction','add_text','add_power','move','rotate','delete','apply_source','pcb_place','pcb_set_side','pcb_track','pcb_outline','pcb_hole','pcb_text','pcb_single_sided','pcb_apply_source','pcb_clone']);
+const ACTIONS=new Set(['open_document','new_pcb','pcb_add_footprint','ping','snapshot','get_source','get_shape','new_schematic','add_component','set_component','add_wire','add_label','add_junction','add_text','add_power','move','rotate','delete','apply_source','pcb_place','pcb_set_side','pcb_track','pcb_outline','pcb_hole','pcb_text','pcb_single_sided','pcb_apply_source','pcb_clone']);
 export function createBridge(secret,{commandTimeout=20000}={}) {
   const sessions=new Map(), jobs=new Map(), completed=new Map();
   function authorized(req) {

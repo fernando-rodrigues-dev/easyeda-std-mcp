@@ -7,6 +7,9 @@ import {isSingleSided,setSingleSided,ensureSingleSided} from './pcb-policy.mjs';
 export function registerPCBTools(tool,{session,edit,safeText,pos,rot}){
  const point=z.object({x:pos,y:pos}),points=z.array(point).min(2).max(1000),layer=z.enum(['1','2']).default('2');
  async function read(a){const s=await snapshot(a.session_id);requirePCB(s.source);return s;}
+ tool('easyeda_pcb_add_footprint','Insere um footprint da biblioteca comum GeneralPackages ou por UUID STD usando createShape. Posicao em mm; preserva os pads e redes anteriores. Nao altera o esquema.',{...edit,title:safeText.min(1),uuid:z.string().regex(/^[a-fA-F0-9-]{16,64}$/).optional(),x_mm:pos,y_mm:pos,rotation:rot.default(0),reference:safeText.optional(),value:safeText.optional(),through_hole_only:z.boolean().default(false)},false,async a=>{
+  const s=await read(a),o=origin(s.source);return mutate('pcb_add_footprint',{...a,single_sided:isSingleSided(s.document_id,s.source),x_mm:a.x_mm+o.x*MM,y_mm:a.y_mm+o.y*MM},a);
+ });
  function describe(s){const r=realSummary(s.source);r.single_sided=isSingleSided(s.document_id,s.source)||r.single_sided;return r;}
  async function change(action,params,a){const s=await read(a);if(s.revision!==a.expected_revision)throw Error('A revisão mudou. Leia a PCB novamente.');const o=origin(s.source);params={...params};
   if(params.points)params.points=params.points.map(p=>toRuntimeMM(s.source,p));
