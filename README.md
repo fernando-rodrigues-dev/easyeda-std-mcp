@@ -10,9 +10,9 @@ O modo WebMCP executa as ferramentas na própria aba do EasyEDA online. Não usa
 
 1. Abra o **EasyEDA Standard online**.
 2. Em **Avançado > Extensões > Executar script**, carregue ou cole [`cloud/Conectar-WebMCP.js`](cloud/Conectar-WebMCP.js) e execute.
-3. Confira **WebMCP: conectado (35)** na barra. O agente deve descobrir as ferramentas da página e chamar `easyeda_status` antes de editar.
+3. Confira **WebMCP: conectado (38)** na barra. O agente deve descobrir as ferramentas da página e chamar `easyeda_status` antes de editar.
 
-As 33 ferramentas originais são compartilhadas com o modo local; há mais duas para listar e baixar backups do navegador. Não execute os dois modos simultaneamente. O script precisa ser carregado novamente ao recarregar a página ou iniciar uma nova sessão cloud; não mantém o navegador rodando em segundo plano.
+As 36 ferramentas também estão disponíveis no modo local; há mais duas para listar e baixar backups do navegador. Não execute os dois modos simultaneamente. O script precisa ser carregado novamente ao recarregar a página ou iniciar uma nova sessão cloud; não mantém o navegador rodando em segundo plano.
 
 Backups prévios ficam em **IndexedDB**, na origem do EasyEDA. Uma edição é recusada se o backup não puder ser gravado. Exportações solicitam download JSON; `easyeda_list_backups` e `easyeda_download_backup` permitem recuperar uma cópia. Esses dados não vão para este GitHub. O armazenamento do navegador cloud pode ser apagado ao encerrar a sessão: salve projetos na sua conta EasyEDA ou exporte-os para armazenamento durável antes de sair. O script não faz login nem salva automaticamente na conta.
 
@@ -29,6 +29,10 @@ npm run check:public
 ```
 
 `cloud/Conectar-WebMCP.js` é um bundle público reproduzível, sem configuração de instalação ou credenciais. As fontes estão em `browser/`; os avisos da dependência incorporada estão em `cloud/THIRD_PARTY_NOTICES.txt`.
+
+## Criação por MCP e biblioteca nativa
+
+`easyeda_open_document` abre um esquema ou PCB preparado em nova aba, sem substituir o documento atual. `easyeda_new_pcb` cria uma placa vazia e `easyeda_pcb_add_footprint` insere uma peça de GeneralPackages ou por UUID STD. A abertura aguarda o novo iframe e confere componentes/pads/redes; a inserção mantém os pads anteriores. Usa somente `applySource`, `createShape`, `rotate` e `moveObjs` da [API oficial](https://docs.easyeda.com/en/API/3-API-List/). A busca remota de bibliotecas e a conversão nativa esquema→PCB não possuem chamada pública documentada nessa API; a busca comum por título continua disponível.
 
 ## Instalação
 
@@ -93,7 +97,7 @@ Depois de reiniciar o computador, o cliente MCP inicia seu servidor conforme a p
 - Conectar pads da mesma rede com rotas simples ou pontos intermediários.
 - Aplicar política de cobre somente na face inferior e conferir conflitos geométricos/continuidade.
 
-São **33 ferramentas**: 19 gerais/de esquema e 14 de PCB. Consulte [as ferramentas](docs/TOOLS.md) e [as limitações conhecidas](docs/LIMITATIONS.md).
+São **36 ferramentas**: 21 gerais/de esquema e 15 de PCB. Consulte [as ferramentas](docs/TOOLS.md) e [as limitações conhecidas](docs/LIMITATIONS.md).
 
 As ferramentas de esquema usam unidades STD de **10 mil**. As ferramentas de PCB usam **milímetros relativos à origem da placa**, com x para a direita e y para baixo. Leia as coordenadas e a revisão antes de editar. Havendo múltiplas sessões, informe `session_id`.
 

@@ -25,7 +25,7 @@ async function browser({storage=true}={}) {
 test('browser bundle is reproducible, browser-only and registers the full tool catalog',async()=>{
   assert.equal(bundle,fs.readFileSync(new URL('../cloud/Conectar-WebMCP.js',import.meta.url),'utf8'));
   assert.ok(!bundle.includes('127.0.0.1:3579'));
-  const b=await browser();assert.equal(b.tools.size,35);
+  const b=await browser();assert.equal(b.tools.size,38);
   const status=await b.call('easyeda_status');assert.equal(status.data.transport,'webmcp');assert.equal(status.data.api_available,true);
   for(const tool of b.tools.values())assert.equal(tool.inputSchema.type,'object');
   const search=await b.call('easyeda_search_components',{query:'R_0805',limit:5});assert.equal(search.data.total,2);
@@ -57,6 +57,6 @@ test('a missing backup store blocks mutation, and reinstallation replaces regist
   const edit=await b.call('easyeda_add_text',{expected_revision:read.data.revision,text:'Blocked',x:10,y:20});
   assert.equal(edit.error,true);assert.match(edit.data,/IndexedDB indisponível/);assert.equal(b.writes,0);
   const oldTool=b.tools.get('easyeda_status');
-  vm.runInContext(bundle,b.context);await b.context.EasyEDAStdWebMCP.ready;assert.equal(b.tools.size,35);
+  vm.runInContext(bundle,b.context);await b.context.EasyEDAStdWebMCP.ready;assert.equal(b.tools.size,38);
   assert.equal((await oldTool.execute({})).isError,true);
 });

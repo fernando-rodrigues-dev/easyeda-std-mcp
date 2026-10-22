@@ -105,6 +105,36 @@
     return async function handle(command) {
       var p=command.params||{}, action=command.action;
       if(action==='ping')return {edition:'Standard',runtime_version:'2.1.0',pcb_available:!!root.EasyEDAStdPCB,api_available:typeof api==='function'};
+      if(action==='open_document'||action==='new_pcb') {
+        var incoming=action==='open_document'?unpack(p.source):{
+          head:{docType:'3',editorVersion:'6.5.60',x:'0',y:'0',c_para:{Title:clean(p.title)}},
+          canvas:'CA~1000~1000~#000000~yes~#FFFFFF~10~1000~1000~line~0.5~mm~1~45~~0.5~0~0~0~yes',
+          shape:[],layers:['1~TopLayer~#FF0000~true~true~true~','2~BottomLayer~#0000FF~true~false~true~','3~TopSilkLayer~#FFCC00~true~false~true~','4~BottomSilkLayer~#66CC33~true~false~true~','7~TopSolderMaskLayer~#800080~true~false~true~0.3','8~BottomSolderMaskLayer~#AA00FF~true~false~true~0.3','9~Ratlines~#6464FF~true~false~true~','10~BoardOutLine~#FF00FF~true~false~true~','11~Multi-Layer~#C0C0C0~true~false~true~','12~Document~#FFFFFF~true~false~true~'],
+          objects:['All~true~false','Component~true~true','Prefix~true~true','Name~true~false','Track~true~true','Pad~true~true','Via~true~true','Hole~true~true','Copper_Area~true~true','Text~true~true'],
+          BBox:{x:0,y:0,width:0,height:0},preference:{hideFootprints:'',hideNets:''},
+          DRCRULE:{Default:{trackWidth:1.968504,clearance:1.377953,viaHoleDiameter:2.4,viaHoleD:1.2},isRealtime:false,isDrcOnRoutingOrPlaceVia:false},netColors:{}
+        };
+        supported(incoming);
+        var previousDocument=documentId(),wanted=summary(incoming);
+        api('applySource',{source:incoming,createNew:true});
+        for(var ow=0;ow<120;ow++) {
+          await new Promise(function(resolve){setTimeout(resolve,100);});
+          try {
+            var opened=read(),openedId=documentId();
+            if(root.document&&(!openedId||openedId===previousDocument))continue;
+            if(docType(opened)!==docType(incoming))continue;
+            var actual=summary(opened);
+            if(actual.components.length!==wanted.components.length)continue;
+            if(docType(incoming)==='3') {
+              if(actual.pads.length!==wanted.pads.length||actual.tracks.length!==wanted.tracks.length||actual.vias.length!==wanted.vias.length)continue;
+              var matches=wanted.pads.every(function(q){return actual.pads.some(function(v){return v.reference===q.reference&&v.number===q.number&&v.net===q.net&&Math.abs(v.x-q.x)<.01&&Math.abs(v.y-q.y)<.01;});});
+              if(!matches)continue;
+            }
+            return {source:opened,document_id:openedId,added_ids:[]};
+          }catch(readError){} // A new iframe can return an empty source while loading.
+        }
+        throw Error('O editor nao confirmou o novo documento completo. Confira a nova aba antes de repetir; a aba anterior nao foi substituida.');
+      }
       if(action==='new_schematic') {
         var marker=p.marker;
         var blank={head:{docType:'1',editorVersion:'6.5.51',c_para:{Title:clean(p.title),MCP_DocumentId:marker}},canvas:'CA~1200~1200~#FFFFFF~yes~#CCCCCC~10~1200~1200~line~10~pixel~5~0~0',shape:[]};
@@ -121,7 +151,7 @@
       if(action==='get_shape')return copy(api('getShape',{id:p.id})||null);
       if(command.expected_source!==JSON.stringify(source))throw new Error('A folha mudou desde a leitura. Leia o esquema novamente antes de editar.');
       if(command.expected_document!==undefined&&command.expected_document!==documentId())throw new Error('A folha ativa foi trocada. Leia o esquema novamente antes de editar.');
-      if(action.startsWith('pcb_')){if(!root.EasyEDAStdPCB)throw Error('Atualize a extensão para habilitar PCB.');return root.EasyEDAStdPCB.handle(action,p,{api:api,read:read,apply:apply});}
+      if(action.startsWith('pcb_')){if(!root.EasyEDAStdPCB)throw Error('Atualize a extensão para habilitar PCB.');return root.EasyEDAStdPCB.handle(action,p,{api:api,read:read,apply:apply,documentId:documentId});}
       if(['add_component','set_component','add_wire','add_label','add_junction','add_text','add_power'].includes(action))requireSchematic(source);
       ['reference','value','net','name','text'].forEach(function(field){if(p[field]!==undefined)clean(p[field]);});
       if(p.reference!==undefined&&summary(source).components.some(function(c){return c.reference===p.reference&&c.id!==p.id;}))throw new Error('A referência já existe na folha: '+p.reference);

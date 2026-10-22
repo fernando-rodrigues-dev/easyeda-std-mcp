@@ -11,6 +11,14 @@ const session={session_id:z.string().optional().describe('ID retornado por easye
 const edit={...session,expected_revision:z.string().length(64).describe('Revisão SHA-256 retornada pela leitura ou pela última alteração. Leia novamente se mudou.')};
 const ids=z.array(z.string().regex(/^gge[a-zA-Z0-9_-]+$/)).min(1).max(100);
 const rot=z.union([z.literal(0),z.literal(90),z.literal(180),z.literal(270)]);
+const documentSource=z.object({head:z.union([z.string(),z.record(z.string(),z.unknown())]),canvas:z.string(),shape:z.array(z.string()).max(20000)}).passthrough();
+tool('easyeda_open_document','Abre um fonte STD de esquema ou PCB em uma NOVA aba, sem substituir a aba atual. Confere a abertura, footprints e pads importados; permite criar um projeto preparado com netlist nova.',{...session,source:documentSource},false,async a=>{
+  const backup_file=await saveSource(a.source,'backup');
+  await command('open_document',{source:a.source},a.session_id);const s=await snapshot(a.session_id);return {backup_file,revision:s.revision,document_id:s.document_id,summary:s.summary};
+});
+tool('easyeda_new_pcb','Abre uma PCB STD vazia em uma nova aba pela API oficial applySource. Nao substitui documentos existentes.',{...session,title:safeText.default('PCB MCP')},false,async a=>{
+  await command('new_pcb',{title:a.title},a.session_id);const s=await snapshot(a.session_id);return {revision:s.revision,document_id:s.document_id,summary:s.summary};
+});
 tool('easyeda_status','Verifica a ponte local e as sessões EasyEDA Standard. Não modifica documentos.',{},true,status);
 tool('easyeda_read_schematic','Lê o esquema ativo, componentes, referências, valores, pinos com coordenadas de conexão, fios e revisão. Unidade: pixel STD (10 mil), x para direita, y para baixo.',session,true,async a=>{const s=await snapshot(a.session_id);if(String(s.source.head.docType)!=='1')throw Error('A aba ativa não é um esquema. Use easyeda_read_pcb.');return {document_id:s.document_id,revision:s.revision,...s.summary,selected_ids:s.selected_ids};});
 tool('easyeda_get_source','Lê o fonte da folha ativa em formato STD comprimido, JSON expandido ou SVG.',{...session,format:z.enum(['compress','json','svg']).default('compress')},true,async a=>({source:await command('get_source',{format:a.format},a.session_id)}));

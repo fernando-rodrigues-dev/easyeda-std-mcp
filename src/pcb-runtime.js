@@ -40,6 +40,35 @@
  function numeric(v,lo,hi,label){if(!Number.isFinite(v)||v<lo||v>hi)throw Error(label+' inválido.');return v;}
  async function handle(action,p,ctx){
   var before=ctx.read(),s=clone(before),r=summary(s),added=[];
+  if(action==='pcb_add_footprint'){
+   var oldIds=r.components.map(function(c){return c.id;}),oldDoc=ctx.documentId(),spec={shapeType:'FOOTPRINT',x:p.x_mm/MM,y:p.y_mm/MM,rotation:0};
+   if(p.reference&&r.components.some(function(c){return c.reference===p.reference;}))throw Error('A referencia ja existe na PCB.');
+   if(p.uuid){spec.uuid=p.uuid;spec.from='system';spec.title=p.title;}else {spec.shapeType='pcblib';spec.from='GeneralPackages';spec.title=p.title;}
+   var made=ctx.api('createShape',spec);if(made&&typeof made.then==='function')await made;
+   var inserted=[];
+   for(var fpw=0;fpw<100;fpw++){
+    if(ctx.documentId()!==oldDoc)throw Error('A aba ativa mudou durante a insercao. Confira o editor antes de repetir.');
+    s=ctx.read();r=summary(s);inserted=r.components.filter(function(c){return oldIds.indexOf(c.id)<0;});
+    if(inserted.length)break;await new Promise(function(resolve){setTimeout(resolve,100);});
+   }
+   if(inserted.length!==1)throw Error('A biblioteca nao retornou exatamente um footprint. Confira a PCB antes de repetir.');
+   var part=inserted[0];
+   try {
+    if(p.through_hole_only&&(!part.pads.length||part.pads.some(function(q){return q.layer!=='11'||q.hole_radius<=0;})))throw Error('O footprint nao e exclusivamente PTH.');
+    var guarded=clone(s);if(p.single_sided)guarded.head.c_para=Object.assign({},guarded.head.c_para,{MCP_SingleSided:'true'});checkSingleSide(guarded);
+   }catch(libraryError){ctx.apply(before);throw Error(libraryError.message+' A PCB anterior foi restaurada.');}
+   if(p.rotation)ctx.api('rotate',{ids:[part.id],degree:(360-p.rotation)%360});
+   part=summary(ctx.read()).components.find(function(c){return c.id===part.id;});
+   ctx.api('moveObjs',{objs:[part.id],addX:p.x_mm/MM-part.x,addY:p.y_mm/MM-part.y});
+   s=ctx.read();
+   var index=s.shape.findIndex(function(raw){return raw.startsWith('LIB~')&&raw.split('#@$')[0].split('~')[6]===part.id;});
+   var chunks=s.shape[index].split('#@$');
+   chunks=chunks.map(function(raw){var f=raw.split('~');if(f[0]==='TEXT'&&f[1]==='P'&&p.reference!==undefined)f[10]=p.reference;if(f[0]==='TEXT'&&f[1]==='N'&&p.value!==undefined)f[10]=p.value;return f.join('~');});
+   if(p.reference!==undefined||p.value!==undefined){s.shape[index]=chunks.join('#@$');ctx.apply(s);}
+   s=ctx.read();var existing=summary(s).pads.filter(function(q){return q.parent_id!==part.id;}).map(function(q){return [q.parent_id,q.id,q.number,q.net].join('|');}).sort().join('\n');
+   if(existing!==netSignature(before))throw Error('A insercao alterou pads ou redes preexistentes.');
+   checkSingleSide(s);return {source:s,added_ids:[part.id],component:summary(s).components.find(function(c){return c.id===part.id;})};
+  }
   if(action==='pcb_clone'){
    requirePCB(s);checkSingleSide(s);var oldDoc='';
    if(root.document){var tabs=root.document.querySelectorAll('#sub-tabbar > div .tabbar-tab.active');for(var ti=0;ti<tabs.length;ti++)if(tabs[ti].getClientRects().length){oldDoc=tabs[ti].getAttribute('uuid')||'';break;}if(!oldDoc){var one=root.document.querySelector('#tabbar .tabbar-tab.single-tab.active');oldDoc=one?one.getAttribute('tabid')||'':'';}}
